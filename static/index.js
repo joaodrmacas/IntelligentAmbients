@@ -231,34 +231,28 @@ function initDashboard() {
     setInterval(fetchCurrentData, 5000); // Update every 5 seconds
 }
 
-function updateOptimalConditions() {
-    fetch('/api/optimal-conditions')
-        .then(response => response.json())
-        .then(data => {
-            const envElement = document.getElementById('environment-status');
-            
-            if (data.overall_optimal) {
-                envElement.innerHTML = '<div class="status-indicator bg-success"></div> Optimal';
-                // envElement.className = 'optimal';
-            } else if (!data.temperature_optimal && !data.light_optimal) {
-                envElement.innerHTML = '<div class="status-indicator bg-danger"></div> Poor';
-                // envElement.className = 'poor';
-            } else {
-                envElement.innerHTML = '<div class="status-indicator bg-warning"></div> Suboptimal';
-                // envElement.className = 'suboptimal';
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching optimal conditions:', error);
-        });
+function updateEnvironmentStatus(temp, light) {
+    const envElement = document.getElementById('environment-status');
+    
+    // Determine overall environment quality based on temperature and light
+    if (temp >= 17 && temp <= 24 && light <= 30) {
+        envElement.innerHTML = '<div class="status-indicator bg-success"></div> Optimal';
+        envElement.className = 'optimal';
+    } else if ((temp < 17 || temp > 24) && light > 30) {
+        envElement.innerHTML = '<div class="status-indicator bg-danger"></div> Poor';
+        envElement.className = 'poor';
+    } else {
+        envElement.innerHTML = '<div class="status-indicator bg-warning"></div> Suboptimal';
+        envElement.className = 'suboptimal';
+    }
 }
+
 
 function fetchCurrentData() {
     fetch('/api/current-data')
         .then(response => response.json())
         .then(data => {
             updateDashboardStats(data);
-            updateOptimalConditions();
 
             checkAndPlaySleepSounds(data);
         })
@@ -327,6 +321,8 @@ function updateDashboardStats(data) {
         envElement.innerHTML = '<div class="status-indicator bg-warning"></div> Suboptimal';
         // envElement.className = 'suboptimal';
     }
+
+    updateEnvironmentStatus(temp, light);
 }
 
 // Initialize sleep chart
@@ -380,58 +376,93 @@ function initSleepChart() {
     });
 }
 
-// Populate sleep history table
 function populateSleepHistoryTable() {
     fetch('/api/sleep-history')
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('API not available');
+            }
+            return response.json();
+        })
         .then(data => {
-            const tableBody = document.getElementById('sleep-history-table');
-            tableBody.innerHTML = '';
-
-            data.forEach(record => {
-                const row = document.createElement('tr');
-
-                // Format date
-                const date = new Date(record.date);
-                const formattedDate = date.toLocaleDateString('en-US', {
-                    weekday: 'short',
-                    month: 'short',
-                    day: 'numeric'
-                });
-
-                // Create badge for quality
-                let qualityBadge;
-                switch (record.quality) {
-                    case 'Excellent':
-                        qualityBadge = '<span class="badge bg-success">Excellent</span>';
-                        break;
-                    case 'Good':
-                        qualityBadge = '<span class="badge bg-info">Good</span>';
-                        break;
-                    case 'Fair':
-                        qualityBadge = '<span class="badge bg-warning">Fair</span>';
-                        break;
-                    case 'Poor':
-                        qualityBadge = '<span class="badge bg-danger">Poor</span>';
-                        break;
-                    default:
-                        qualityBadge = '<span class="badge bg-secondary">Unknown</span>';
-                }
-
-                row.innerHTML = `
-                    <td>${formattedDate}</td>
-                    <td>${record.hours.toFixed(1)}</td>
-                    <td>${record.temp.toFixed(1)}°C</td>
-                    <td>${record.light}%</td>
-                    <td>${qualityBadge}</td>
-                `;
-
-                tableBody.appendChild(row);
-            });
+            updateSleepHistoryTable(data);
         })
         .catch(error => {
             console.error('Error fetching sleep history:', error);
         });
+}
+
+function updatePreferencesUI(data) {
+    // Update temperature slider
+    document.getElementById('temp-preference').value = data.ideal_temp;
+    document.getElementById('temp-value').textContent = data.ideal_temp + '°C';
+    
+    // Update light slider
+    document.getElementById('light-preference').value = data.max_light;
+    document.getElementById('light-value').textContent = data.max_light + '%';
+    
+    // Update checkboxes
+    document.getElementById('auto-light').checked = data.adaptive_light;
+    document.getElementById('auto-temp').checked = data.auto_temp;
+    document.getElementById('sleep-notifications').checked = data.sleep_notifications;
+    
+    // Update sound duration
+    document.getElementById('sound-duration').value = data.sound_duration;
+    
+    // Select the correct sound card
+    const soundId = data.sound_id;
+    document.querySelectorAll('.sound-card').forEach(card => {
+        card.classList.remove('selected');
+        if (card.getAttribute('data-sound-id') === soundId) {
+            card.classList.add('selected');
+        }
+    });
+}
+
+function updateSleepHistoryTable(data) {
+    const tableBody = document.getElementById('sleep-history-table');
+    tableBody.innerHTML = '';
+
+    data.forEach(record => {
+        const row = document.createElement('tr');
+
+        // Format date
+        const date = new Date(record.date);
+        const formattedDate = date.toLocaleDateString('en-US', {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric'
+        });
+
+        // Create badge for quality
+        let qualityBadge;
+        switch (record.quality) {
+            case 'Excellent':
+                qualityBadge = '<span class="badge bg-success">Excellent</span>';
+                break;
+            case 'Good':
+                qualityBadge = '<span class="badge bg-info">Good</span>';
+                break;
+            case 'Fair':
+                qualityBadge = '<span class="badge bg-warning">Fair</span>';
+                break;
+            case 'Poor':
+                qualityBadge = '<span class="badge bg-danger">Poor</span>';
+                break;
+            default:
+                qualityBadge = '<span class="badge bg-secondary">Unknown</span>';
+        }
+
+        row.innerHTML = `
+            <td>${formattedDate}</td>
+            <td>${record.hours.toFixed(1)}</td>
+            <td>${record.temp.toFixed(1)}°C</td>
+            <td>${record.light}%</td>
+            <td>${qualityBadge}</td>
+        `;
+
+        tableBody.appendChild(row);
+    });
 }
 
 function playSound(soundId) {
@@ -513,32 +544,14 @@ document.querySelectorAll('.sound-card').forEach(card => {
 
 function loadPreferences() {
     fetch('/api/preferences')
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('API not available');
+            }
+            return response.json();
+        })
         .then(data => {
-            // Update temperature slider
-            document.getElementById('temp-preference').value = data.ideal_temp;
-            document.getElementById('temp-value').textContent = data.ideal_temp + '°C';
-            
-            // Update light slider
-            document.getElementById('light-preference').value = data.max_light;
-            document.getElementById('light-value').textContent = data.max_light + '%';
-            
-            // Update checkboxes
-            document.getElementById('auto-light').checked = data.adaptive_light;
-            document.getElementById('auto-temp').checked = data.auto_temp;
-            document.getElementById('sleep-notifications').checked = data.sleep_notifications;
-            
-            // Update sound duration
-            document.getElementById('sound-duration').value = data.sound_duration;
-            
-            // Select the correct sound card
-            const soundId = data.sound_id;
-            document.querySelectorAll('.sound-card').forEach(card => {
-                card.classList.remove('selected');
-                if (card.getAttribute('data-sound-id') === soundId) {
-                    card.classList.add('selected');
-                }
-            });
+            updatePreferencesUI(data);
         })
         .catch(error => {
             console.error('Error loading preferences:', error);
