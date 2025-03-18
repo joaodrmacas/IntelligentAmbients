@@ -3,7 +3,6 @@ import { fetchFromAPI } from './api.js';
 import { playSound } from './audio-player.js';
 
 export function initDashboard() {
-    // Fetch current sensor data
     fetchCurrentData();
     initSleepChart();
     populateSleepHistoryTable();
@@ -32,8 +31,7 @@ function checkAndPlaySleepSounds(data) {
                 fetchFromAPI('/api/optimal-conditions')
                     .then(conditions => {
                         // Play sound if conditions are optimal and user is in bed
-                        if (conditions.overall_optimal && data.pressure > 10) {
-                            // Don't play if already playing
+                        if (conditions.overall_optimal && data.pressure >= 1) {
                             if (!window.audioPlayer) {
                                 console.log('Playing sleep sound:', preferences.sound_id);
                                 playSound(preferences.sound_id, preferences.sound_duration);

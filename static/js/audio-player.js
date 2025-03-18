@@ -1,11 +1,6 @@
 let audioPlayer = null;
 let soundTimer = null;
 
-export function initAudioControls() {
-    // This function is called once at page load
-    // It can be used for any audio-related initialization
-}
-
 export function stopSound() {
     // Clear any existing timer
     if (soundTimer) {
