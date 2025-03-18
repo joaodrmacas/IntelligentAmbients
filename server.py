@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, render_template, send_from_directory
 import sqlite3
 from datetime import datetime, timedelta
 import os
+from pytube import YouTube
 
 app = Flask(__name__, static_folder='static')
 
@@ -58,6 +59,35 @@ def insert_sensor_data(data):
         # Check if we need to update sleep sessions
         update_sleep_sessions(conn, data)
 
+@app.route("/sounds/<sound_id>.mp3")
+def serve_sound(sound_id):
+    sound_dir = "static/sounds"
+    sound_path = os.path.join(sound_dir, f"{sound_id}.mp3")
+    
+    # Check if the sound file already exists
+    if not os.path.exists(sound_path):
+        # Create the sounds directory if it doesn't exist
+        if not os.path.exists(sound_dir):
+            os.makedirs(sound_dir)
+        
+        try:
+            # Download the sound from YouTube
+            yt = YouTube(f"https://www.youtube.com/watch?v={sound_id}")
+            audio_stream = yt.streams.filter(only_audio=True).first()
+            temp_file = audio_stream.download(output_path=sound_dir, filename=f"{sound_id}")
+            
+            # Convert to MP3 if needed (you might need pydub for this)
+            # For simplicity, we'll just rename the file
+            base, ext = os.path.splitext(temp_file)
+            if ext != '.mp3':
+                os.rename(temp_file, sound_path)
+        except Exception as e:
+            #TODO: code a personalized sound
+            print(f"Error downloading sound: {e}")
+            return "", 404
+    
+    return send_from_directory(sound_dir, f"{sound_id}.mp3")
+
 def update_sleep_sessions(conn, data):
     cursor = conn.cursor()
     pressure = data.get("pressure", 0)
@@ -106,7 +136,6 @@ def update_sleep_sessions(conn, data):
             conn.commit()
 
 def determine_sleep_quality(avg_temp, avg_light, duration):
-    # Simple quality determination based on environment factors and duration
     quality_score = 0
     
     # Temperature factor (18-22°C is ideal)
@@ -238,7 +267,6 @@ def get_sleep_history():
 
 @app.route("/api/sleep-stats", methods=["GET"])
 def get_sleep_stats():
-    """Returns aggregated sleep statistics."""
     with sqlite3.connect("smart_bedroom.db") as conn:
         cursor = conn.cursor()
         
@@ -292,7 +320,6 @@ def get_sleep_stats():
 
 @app.route("/api/preferences", methods=["GET"])
 def get_preferences():
-    """Returns user preferences."""
     with sqlite3.connect("smart_bedroom.db") as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM user_preferences ORDER BY id DESC LIMIT 1")
@@ -331,7 +358,6 @@ def save_sound_preferences():
 
 @app.route("/api/preferences/environment", methods=["POST"])
 def save_environment_preferences():
-    """Saves environment preferences."""
     data = request.get_json()
     if not data:
         return jsonify({"error": "Invalid data"}), 400
@@ -355,7 +381,6 @@ def save_environment_preferences():
 
 @app.route("/api/optimal-conditions", methods=["GET"])
 def get_optimal_conditions():
-    """Returns if current conditions are optimal for sleeping."""
     with sqlite3.connect("smart_bedroom.db") as conn:
         cursor = conn.cursor()
         
@@ -385,21 +410,8 @@ def get_optimal_conditions():
         return jsonify({"message": "Insufficient data to determine optimal conditions"})
 
 if __name__ == "__main__":
-    # Create templates and static directories if they don't exist
     for directory in ["templates", "static"]:
         if not os.path.exists(directory):
             os.makedirs(directory)
-    
-    # Create basic CSS file in static directory if it doesn't exist
-    if not os.path.exists("static/styles.css"):
-        with open("static/styles.css", "w") as f:
-            f.write("""
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f5f5f5;
-}
-            """)
     
     app.run(debug=True)

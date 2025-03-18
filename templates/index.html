@@ -5,135 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Bedroom</title>
+    <link href="../static/styles.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root {
-            --primary: #3a6ea5;
-            --secondary: #c0d6df;
-            --light: #f0f5f9;
-            --dark: #293241;
-            --success: #4caf50;
-            --warning: #ff9800;
-            --danger: #f44336;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--light);
-            color: var(--dark);
-        }
-
-        .sidebar {
-            height: 100vh;
-            background-color: var(--dark);
-            color: white;
-        }
-
-        .sidebar .nav-link {
-            color: rgba(255, 255, 255, 0.8);
-            padding: 0.8rem 1rem;
-            border-radius: 0.25rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .sidebar .nav-link:hover,
-        .sidebar .nav-link.active {
-            background-color: rgba(255, 255, 255, 0.1);
-            color: white;
-        }
-
-        .sidebar .nav-link i {
-            margin-right: 0.75rem;
-        }
-
-        .main-content {
-            height: 100vh;
-            overflow-y: auto;
-            padding: 2rem;
-        }
-
-        .card {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            margin-bottom: 1.5rem;
-            transition: transform 0.3s;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-        }
-
-        .stat-card {
-            padding: 1.5rem;
-            text-align: center;
-        }
-
-        .stat-card i {
-            font-size: 2rem;
-            margin-bottom: 1rem;
-        }
-
-        .optimal {
-            background-color: #d4edda;
-            color: #155724;
-        }
-
-        .suboptimal {
-            background-color: #fff3cd;
-            color: #856404;
-        }
-
-        .poor {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-
-        .table th {
-            border-top: none;
-        }
-
-        .btn-primary {
-            background-color: var(--primary);
-            border-color: var(--primary);
-        }
-
-        .btn-primary:hover {
-            background-color: #2c5282;
-            border-color: #2c5282;
-        }
-
-        .sound-card {
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            height: 100%;
-        }
-
-        .sound-card.selected {
-            border: 3px solid var(--primary);
-        }
-
-        .sound-card img {
-            height: 120px;
-            object-fit: cover;
-        }
-
-        .status-indicator {
-            width: 15px;
-            height: 15px;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 5px;
-        }
-
-        .badge-sleep {
-            background-color: #8e44ad;
-            color: white;
-        }
-    </style>
 </head>
 
 <body>
@@ -249,7 +123,7 @@
                             <p class="card-text">Select your preferred sleep sound from YouTube:</p>
                             <div class="row">
                                 <div class="col-md-4 mb-3">
-                                    <div class="card sound-card" data-sound-id="q76bMs-NwRk">
+                                    <div class="card sound-card" data-sound-id="white-noise">
                                         <img src="https://as2.ftcdn.net/v2/jpg/02/63/38/15/1000_F_263381557_RVtcOKVmtKLmaVu1qRhYMp7DiSQt1JvJ.jpg" alt="White Noise" class="card-img-top">
                                         <div class="card-body">
                                             <h6 class="card-title">White Noise</h6>
@@ -259,7 +133,7 @@
                                     </div>
                                 </div>
                                 <div class="col-md-4 mb-3">
-                                    <div class="card sound-card" data-sound-id="Ftm2uv7-Ybw">
+                                    <div class="card sound-card" data-sound-id="rain-sounds">
                                         <img src="https://www.oceanclock.com/img/modules/oh_news/news/56_picture.jpg" alt="Rain Sounds" class="card-img-top">
                                         <div class="card-body">
                                             <h6 class="card-title">Rain Sounds</h6>
@@ -268,7 +142,7 @@
                                     </div>
                                 </div>
                                 <div class="col-md-4 mb-3">
-                                    <div class="card sound-card" data-sound-id="xNN7iTA57jM">
+                                    <div class="card sound-card" data-sound-id="ocean-waves">
                                         <img src="https://www.nortekgroup.com/assets/images/Waves.jpg" alt="Ocean Waves" class="card-img-top">
                                         <div class="card-body">
                                             <h6 class="card-title">Ocean Waves</h6>
@@ -279,7 +153,7 @@
                             </div>
                             <div class="row mt-3">
                                 <div class="col-md-4 mb-3">
-                                    <div class="card sound-card" data-sound-id="1ZYbU82GVz4">
+                                    <div class="card sound-card" data-sound-id="forest-sounds">
                                         <img src="https://mymodernmet.com/wp/wp-content/uploads/2020/12/forest-sounds-tree-fm-1.jpg" alt="Forest Sounds" class="card-img-top">
                                         <div class="card-body">
                                             <h6 class="card-title">Forest Sounds</h6>
@@ -288,7 +162,7 @@
                                     </div>
                                 </div>
                                 <div class="col-md-4 mb-3">
-                                    <div class="card sound-card" data-sound-id="WrOzwoMKzH0">
+                                    <div class="card sound-card" data-sound-id="brown-noise">
                                         <img src="https://sleephub.com.au/wp-content/uploads/2016/05/brown-noise-sq.jpg" alt="Brown Noise" class="card-img-top">
                                         <div class="card-body">
                                             <h6 class="card-title">Brown Noise</h6>
@@ -297,7 +171,7 @@
                                     </div>
                                 </div>
                                 <div class="col-md-4 mb-3">
-                                    <div class="card sound-card" data-sound-id="VwgKnXVkp0k">
+                                    <div class="card sound-card" data-sound-id="custom">
                                         <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTS2bHm2iixjz0Awt8PnvW_-cnrLSjXmQVW1Q&s" alt="Custom Sound" class="card-img-top">
                                         <div class="card-body">
                                             <h6 class="card-title">Custom YouTube</h6>
@@ -372,351 +246,8 @@
             </div>
         </div>
     </div>
-
-    <script>
-        // Navigation between sections
-        document.getElementById('dashboard-link').addEventListener('click', function (e) {
-            e.preventDefault();
-            document.getElementById('dashboard-section').style.display = 'block';
-            document.getElementById('settings-section').style.display = 'none';
-            document.getElementById('dashboard-link').classList.add('active');
-            document.getElementById('settings-link').classList.remove('active');
-        });
-
-        document.getElementById('settings-link').addEventListener('click', function (e) {
-            e.preventDefault();
-            document.getElementById('dashboard-section').style.display = 'none';
-            document.getElementById('settings-section').style.display = 'block';
-            document.getElementById('dashboard-link').classList.remove('active');
-            document.getElementById('settings-link').classList.add('active');
-        });
-
-        // Sound card selection
-        document.querySelectorAll('.sound-card').forEach(card => {
-            card.addEventListener('click', function () {
-                // Remove selected class from all cards
-                document.querySelectorAll('.sound-card').forEach(c => {
-                    c.classList.remove('selected');
-                });
-                // Add selected class to clicked card
-                this.classList.add('selected');
-            });
-        });
-
-        // Custom YouTube ID handler
-        document.getElementById('set-custom-sound').addEventListener('click', function () {
-            const customId = document.getElementById('custom-youtube-id').value.trim();
-            if (customId) {
-                const customCard = document.querySelector('.sound-card[data-sound-id="custom"]') ||
-                    document.querySelector('.sound-card:last-child');
-                customCard.setAttribute('data-sound-id', customId);
-
-                // Remove selected class from all cards
-                document.querySelectorAll('.sound-card').forEach(c => {
-                    c.classList.remove('selected');
-                });
-                // Add selected class to custom card
-                customCard.classList.add('selected');
-            }
-        });
-
-        // Temperature slider value display
-        document.getElementById('temp-preference').addEventListener('input', function () {
-            document.getElementById('temp-value').textContent = this.value + '°C';
-        });
-
-        // Light slider value display
-        document.getElementById('light-preference').addEventListener('input', function () {
-            document.getElementById('light-value').textContent = this.value + '%';
-        });
-
-        // Save preferences
-        document.getElementById('save-sound-preferences').addEventListener('click', function () {
-            const selectedCard = document.querySelector('.sound-card.selected');
-            const soundId = selectedCard ? selectedCard.getAttribute('data-sound-id') : null;
-            const duration = document.getElementById('sound-duration').value;
-
-            if (soundId) {
-                const data = {
-                    soundId: soundId,
-                    duration: duration
-                };
-
-                // Send data to backend
-                saveSoundPreferences(data);
-            } else {
-                alert('Please select a sound.');
-            }
-        });
-
-        document.getElementById('save-env-preferences').addEventListener('click', function () {
-            const data = {
-                idealTemp: document.getElementById('temp-preference').value,
-                maxLight: document.getElementById('light-preference').value,
-                adaptiveLight: document.getElementById('auto-light').checked,
-                autoTemp: document.getElementById('auto-temp').checked,
-                sleepNotifications: document.getElementById('sleep-notifications').checked
-            };
-
-            // Send data to backend
-            saveEnvironmentPreferences(data);
-        });
-
-        // Mock functions to save preferences (replace with actual API calls)
-        function saveSoundPreferences(data) {
-            console.log('Saving sound preferences:', data);
-            // Mock API call
-            fetch('/api/preferences/sound', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data)
-            })
-                .then(response => {
-                    if (response.ok) {
-                        showAlert('Sound preferences saved successfully!', 'success');
-                    } else {
-                        showAlert('Failed to save sound preferences.', 'danger');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showAlert('Error saving preferences: ' + error.message, 'danger');
-                });
-        }
-
-        function saveEnvironmentPreferences(data) {
-            console.log('Saving environment preferences:', data);
-            // Mock API call
-            fetch('/api/preferences/environment', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data)
-            })
-                .then(response => {
-                    if (response.ok) {
-                        showAlert('Environment preferences saved successfully!', 'success');
-                    } else {
-                        showAlert('Failed to save environment preferences.', 'danger');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showAlert('Error saving preferences: ' + error.message, 'danger');
-                });
-        }
-
-        // Helper function to show alerts
-        function showAlert(message, type) {
-            const alertDiv = document.createElement('div');
-            alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed bottom-0 end-0 m-3`;
-            alertDiv.setAttribute('role', 'alert');
-            alertDiv.innerHTML = `
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            `;
-            document.body.appendChild(alertDiv);
-
-            // Auto-close after 3 seconds
-            setTimeout(() => {
-                alertDiv.classList.remove('show');
-                setTimeout(() => alertDiv.remove(), 150);
-            }, 3000);
-        }
-
-        // Initialize dashboard data and charts
-        function initDashboard() {
-            // Fetch current sensor data
-            fetchCurrentData();
-
-            // Initialize charts
-            initSleepChart();
-
-            // Populate sleep history table
-            populateSleepHistoryTable();
-
-            // Set up real-time updates
-            setInterval(fetchCurrentData, 5000); // Update every 5 seconds
-        }
-
-        // Fetch current sensor data
-        function fetchCurrentData() {
-            // In a real application, you would fetch from your API
-            fetch('/')
-                .then(response => response.json())
-                .then(data => {
-                    updateDashboardStats(data);
-                })
-                .catch(error => {
-                    console.error('Error fetching sensor data:', error);
-                });
-        }
-
-        // Update dashboard statistics with current data
-        function updateDashboardStats(data) {
-            // For demo purposes, using mock data if API data isn't available
-            const mockData = {
-                temperature: data.temperature || 20.5,
-                light: data.light || 45,
-                pressure: data.pressure || 0,
-                timestamp: data.timestamp || new Date().toISOString()
-            };
-
-            // Update temperature display
-            const tempElement = document.getElementById('temperature');
-            const temp = mockData.temperature;
-            tempElement.textContent = `${temp.toFixed(1)}°C`;
-
-            if (temp < 17) {
-                tempElement.innerHTML += ' <span class="badge bg-primary">Too Cold</span>';
-            } else if (temp > 24) {
-                tempElement.innerHTML += ' <span class="badge bg-danger">Too Hot</span>';
-            } else {
-                tempElement.innerHTML += ' <span class="badge bg-success">Optimal</span>';
-            }
-
-            // Update light level display
-            const lightElement = document.getElementById('light-level');
-            const light = mockData.light;
-            lightElement.textContent = `${light.toFixed(0)}%`;
-
-            if (light > 30) {
-                lightElement.innerHTML += ' <span class="badge bg-warning">Too Bright</span>';
-            } else if (light < 5) {
-                lightElement.innerHTML += ' <span class="badge bg-primary">Very Dark</span>';
-            } else {
-                lightElement.innerHTML += ' <span class="badge bg-success">Optimal</span>';
-            }
-
-            // Update sleep status
-            const sleepElement = document.getElementById('sleep-status');
-            const pressure = mockData.pressure;
-
-            if (pressure > 10) {
-                sleepElement.innerHTML = 'In Bed <span class="badge badge-sleep">Sleeping</span>';
-            } else {
-                sleepElement.innerHTML = 'Not in Bed <span class="badge bg-secondary">Awake</span>';
-            }
-
-            // Update environment status
-            const envElement = document.getElementById('environment-status');
-
-            // Determine overall environment quality based on temperature and light
-            if (temp >= 17 && temp <= 24 && light <= 30) {
-                envElement.innerHTML = '<div class="status-indicator bg-success"></div> Optimal';
-                envElement.className = 'optimal';
-            } else if ((temp < 17 || temp > 24) && light > 30) {
-                envElement.innerHTML = '<div class="status-indicator bg-danger"></div> Poor';
-                envElement.className = 'poor';
-            } else {
-                envElement.innerHTML = '<div class="status-indicator bg-warning"></div> Suboptimal';
-                envElement.className = 'suboptimal';
-            }
-        }
-
-        // Initialize sleep chart
-        function initSleepChart() {
-            // Mock data for the chart
-            const sleepData = {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                datasets: [{
-                    label: 'Sleep Hours',
-                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1,
-                    data: [7.5, 6.8, 8.2, 7.0, 6.5, 8.5, 7.8],
-                }]
-            };
-
-            const ctx = document.getElementById('sleepChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'bar',
-                data: sleepData,
-                options: {
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 10,
-                            title: {
-                                display: true,
-                                text: 'Hours'
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    }
-                }
-            });
-        }
-
-        // Populate sleep history table
-        function populateSleepHistoryTable() {
-            // Mock data for the table
-            const mockHistoryData = [
-                { date: '2025-03-15', hours: 7.5, temp: 21.2, light: 15, quality: 'Good' },
-                { date: '2025-03-14', hours: 6.8, temp: 22.1, light: 12, quality: 'Fair' },
-                { date: '2025-03-13', hours: 8.2, temp: 20.5, light: 8, quality: 'Excellent' },
-                { date: '2025-03-12', hours: 7.0, temp: 21.8, light: 22, quality: 'Good' },
-                { date: '2025-03-11', hours: 6.5, temp: 23.2, light: 30, quality: 'Poor' },
-                { date: '2025-03-10', hours: 8.5, temp: 20.2, light: 10, quality: 'Excellent' },
-                { date: '2025-03-09', hours: 7.8, temp: 21.5, light: 15, quality: 'Good' }
-            ];
-
-            const tableBody = document.getElementById('sleep-history-table');
-            tableBody.innerHTML = '';
-
-            mockHistoryData.forEach(record => {
-                const row = document.createElement('tr');
-
-                // Format date
-                const date = new Date(record.date);
-                const formattedDate = date.toLocaleDateString('en-US', {
-                    weekday: 'short',
-                    month: 'short',
-                    day: 'numeric'
-                });
-
-                // Create badge for quality
-                let qualityBadge;
-                switch (record.quality) {
-                    case 'Excellent':
-                        qualityBadge = '<span class="badge bg-success">Excellent</span>';
-                        break;
-                    case 'Good':
-                        qualityBadge = '<span class="badge bg-info">Good</span>';
-                        break;
-                    case 'Fair':
-                        qualityBadge = '<span class="badge bg-warning">Fair</span>';
-                        break;
-                    case 'Poor':
-                        qualityBadge = '<span class="badge bg-danger">Poor</span>';
-                        break;
-                    default:
-                        qualityBadge = '<span class="badge bg-secondary">Unknown</span>';
-                }
-
-                row.innerHTML = `
-                    <td>${formattedDate}</td>
-                    <td>${record.hours.toFixed(1)}</td>
-                    <td>${record.temp.toFixed(1)}°C</td>
-                    <td>${record.light}%</td>
-                    <td>${qualityBadge}</td>
-                `;
-
-                tableBody.appendChild(row);
-            });
-        }
-
-        // Initialize the dashboard when the page loads
-        document.addEventListener('DOMContentLoaded', function () {
-            initDashboard();
-        });
-    </script>
+    <script src="../static/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </body>
 </html>
