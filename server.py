@@ -97,7 +97,7 @@ def update_sleep_sessions(conn, data):
     active_session = cursor.fetchone()
     
     # User is in bed
-    if pressure > 1:
+    if pressure >= 1:
         if not active_session:
             cursor.execute("INSERT INTO sleep_sessions (start_time) VALUES (?)", 
                           (datetime.now().strftime("%Y-%m-%d %H:%M:%S"),))
@@ -194,7 +194,6 @@ def receive_sensor_data():
 
 @app.route("/api/current-data", methods=["GET"])
 def get_current_data():
-    """Returns the latest sensor data and sleep status."""
     with sqlite3.connect("smart_bedroom.db") as conn:
         cursor = conn.cursor()
         
@@ -408,6 +407,63 @@ def get_optimal_conditions():
             })
         
         return jsonify({"message": "Insufficient data to determine optimal conditions"})
+
+def get_environment_adjustments():
+    """Determines what environmental adjustments are needed based on preferences."""
+    with sqlite3.connect("smart_bedroom.db") as conn:
+        cursor = conn.cursor()
+        
+        # Get latest sensor data
+        cursor.execute("SELECT temperature, light FROM sensor_data ORDER BY id DESC LIMIT 1")
+        sensor_row = cursor.fetchone()
+        
+        # Get user preferences
+        cursor.execute("SELECT ideal_temp, max_light, adaptive_light, auto_temp FROM user_preferences ORDER BY id DESC LIMIT 1")
+        pref_row = cursor.fetchone()
+        
+        if not sensor_row or not pref_row:
+            return {"temp_adjust": 0, "light_adjust": 0, "auto_temp": False, "adaptive_light": False}
+        
+        current_temp = sensor_row[0]
+        current_light = sensor_row[1]
+        ideal_temp = pref_row[0]
+        max_light = pref_row[1]
+        adaptive_light = bool(pref_row[2])
+        auto_temp = bool(pref_row[3])
+        
+        # Initialize adjustments
+        temp_adjust = 0
+        light_adjust = 0
+        
+        if auto_temp:
+            temp_diff = ideal_temp - current_temp
+            
+            # Determine adjustment (-1 for cooling, +1 for heating, 0 for no change)
+            if temp_diff > 1:  # Need to heat up
+                temp_adjust = 1
+            elif temp_diff < -1:  # Need to cool down
+                temp_adjust = -1
+        
+        if adaptive_light:
+            # If current light is higher than max_light, dim the lights
+            if current_light > max_light:
+                light_adjust = -1  # Dim lights
+            # If it's too dark (below 5%), brighten slightly
+            elif current_light < 5:
+                light_adjust = 1  # Brighten lights
+        
+        return {
+            "temp_adjust": temp_adjust, 
+            "light_adjust": light_adjust,
+            "auto_temp": auto_temp,
+            "adaptive_light": adaptive_light
+        }
+
+@app.route("/api/environment-control", methods=["GET"])
+def environment_control():
+    adjustments = get_environment_adjustments()
+    return jsonify(adjustments)
+
 
 if __name__ == "__main__":
     for directory in ["templates", "static"]:

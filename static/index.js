@@ -175,6 +175,72 @@ function saveSoundPreferences(data) {
         });
 }
 
+function updateEnvironmentControls(temp, light, data) {
+    // Get control status
+    fetch('/api/environment-control')
+        .then(response => response.json())
+        .then(controlData => {
+            // Update temperature status
+            const tempStatusElement = document.getElementById('temp-control-status');
+            if (!tempStatusElement) {
+                // Create temperature control status element if it doesn't exist
+                const tempElement = document.getElementById('temperature').parentElement;
+                const tempStatus = document.createElement('div');
+                tempStatus.id = 'temp-control-status';
+                tempStatus.className = 'mt-2 small';
+                tempElement.appendChild(tempStatus);
+            }
+            
+            // Update light control status
+            const lightStatusElement = document.getElementById('light-control-status');
+            if (!lightStatusElement) {
+                // Create light control status element if it doesn't exist
+                const lightElement = document.getElementById('light-level').parentElement;
+                const lightStatus = document.createElement('div');
+                lightStatus.id = 'light-control-status';
+                lightStatus.className = 'mt-2 small';
+                lightElement.appendChild(lightStatus);
+            }
+            
+            // Set status text based on adjustments
+            if (controlData.auto_temp) {
+                document.getElementById('temp-control-status').innerHTML = getTemperatureStatusHTML(controlData.temp_adjust);
+            } else {
+                document.getElementById('temp-control-status').innerHTML = '<span class="text-muted">Auto-temperature disabled</span>';
+            }
+            
+            if (controlData.adaptive_light) {
+                document.getElementById('light-control-status').innerHTML = getLightStatusHTML(controlData.light_adjust);
+            } else {
+                document.getElementById('light-control-status').innerHTML = '<span class="text-muted">Adaptive lighting disabled</span>';
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching environment control data:', error);
+        });
+}
+
+function getTemperatureStatusHTML(tempAdjust) {
+    if (tempAdjust > 0) {
+        return '<i class="fas fa-fire text-danger"></i> <span class="text-danger">Heating active</span>';
+    } else if (tempAdjust < 0) {
+        return '<i class="fas fa-snowflake text-primary"></i> <span class="text-primary">Cooling active</span>';
+    } else {
+        return '<i class="fas fa-check-circle text-success"></i> <span class="text-success">Temperature maintained</span>';
+    }
+}
+
+function getLightStatusHTML(lightAdjust) {
+    if (lightAdjust > 0) {
+        return '<i class="fas fa-sun text-warning"></i> <span class="text-warning">Increasing brightness</span>';
+    } else if (lightAdjust < 0) {
+        return '<i class="fas fa-moon text-primary"></i> <span class="text-primary">Dimming lights</span>';
+    } else {
+        return '<i class="fas fa-check-circle text-success"></i> <span class="text-success">Light level maintained</span>';
+    }
+}
+
+
 function saveEnvironmentPreferences(data) {
     console.log('Saving environment preferences:', data);
     // Mock API call
@@ -320,6 +386,7 @@ function updateDashboardStats(data) {
     }
 
     updateEnvironmentStatus(temp, light);
+    updateEnvironmentControls(data.temperature, data.light);
 }
 
 // Initialize sleep chart
