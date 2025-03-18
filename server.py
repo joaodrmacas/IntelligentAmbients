@@ -37,7 +37,7 @@ def init_db():
                             adaptive_light BOOLEAN DEFAULT 1,
                             auto_temp BOOLEAN DEFAULT 1,
                             sleep_notifications BOOLEAN DEFAULT 1,
-                            sound_id TEXT DEFAULT 'q76bMs-NwRk',
+                            sound_id TEXT DEFAULT 'white-noise',
                             sound_duration INTEGER DEFAULT 30)''')
         
         # Insert default preferences if not exists
@@ -96,9 +96,9 @@ def update_sleep_sessions(conn, data):
     cursor.execute("SELECT id, start_time FROM sleep_sessions WHERE end_time IS NULL")
     active_session = cursor.fetchone()
     
-    if pressure > 10:  # User is in bed
+    # User is in bed
+    if pressure > 1:
         if not active_session:
-            # Start a new sleep session
             cursor.execute("INSERT INTO sleep_sessions (start_time) VALUES (?)", 
                           (datetime.now().strftime("%Y-%m-%d %H:%M:%S"),))
             conn.commit()
