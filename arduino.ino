@@ -1,144 +1,88 @@
-// Pins for sensors
-#define TEMP_SENSOR_PIN A0
-#define LIGHT_SENSOR_PIN A1
-#define PRESSURE_SENSOR_PIN A2
+#include <Servo.h>
 
-// Pins for actuators
-#define HEATING_PIN 9    // PWM pin for heating element/relay
-#define COOLING_PIN 10   // PWM pin for cooling element/fan
-#define LIGHT_CONTROL_PIN 11  // PWM pin for light control
+const int PIN_RED   = 11;
+const int PIN_GREEN = 9;
+const int PIN_BLUE  = 6;
+const int lightSensor = A0;
+const int tempSensor =  A1;
+const int buttonPin2 = 2;
+const int buttonPin4 = 4;
+const int minLightLevel = 200;
+const float minRoomTemp = 24;
 
-// Constants
-const unsigned long SEND_INTERVAL = 5000;  // Send data every 5 seconds
-unsigned long lastSendTime = 0;
+int buttonState2 = 0; 
+int buttonState4 = 0; 
 
-// Environmental control variables
-int tempAdjustment = 0;  // -1 = cool, 0 = no change, 1 = heat
-int lightAdjustment = 0; // -1 = dim, 0 = no change, 1 = brighten
-
-// Current actuator values
-int heatingValue = 0;    // 0-255
-int coolingValue = 0;    // 0-255
-int lightValue = 128;    // 0-255, start at midpoint
+Servo fanServo;  // Create a Servo object
+int servoPin = 7; // Connect the servo signal wire to pin 9
 
 void setup() {
+  // put your setup code here, to run once:
+  pinMode(PIN_RED,   OUTPUT);
+  pinMode(PIN_GREEN, OUTPUT);
+  pinMode(PIN_BLUE,  OUTPUT);
   Serial.begin(9600);
-  
-  // Setup pins
-  pinMode(HEATING_PIN, OUTPUT);
-  pinMode(COOLING_PIN, OUTPUT);
-  pinMode(LIGHT_CONTROL_PIN, OUTPUT);
-  
-  // Initialize actuators
-  analogWrite(HEATING_PIN, 0);
-  analogWrite(COOLING_PIN, 0);
-  analogWrite(LIGHT_CONTROL_PIN, lightValue);
-  
-  delay(2000);  // Give time to initialize
-  Serial.println("Smart Bedroom Environment Controller initialized");
+  pinMode(lightSensor, INPUT);
+  pinMode(buttonPin2, INPUT);
+  pinMode(buttonPin4, INPUT);
+
+  fanServo.attach(servoPin); // Attach the servo
 }
 
 void loop() {
-  // Check for incoming commands
-  checkForCommands();
-  
-  // Apply environmental adjustments
-  applyEnvironmentAdjustments();
-  
-  // Read sensor data at regular intervals
-  unsigned long currentTime = millis();
-  if (currentTime - lastSendTime >= SEND_INTERVAL) {
-    sendSensorData();
-    lastSendTime = currentTime;
+  float isInBed = readBedSensor();
+
+  if (readRoomBrightness() > minLightLevel){
+    changeLEDColor(0,0,255);
+  }else if (isInBed){
+    changeLEDColor(255,0,0);
   }
+
+  if (readRoomTemp() > minRoomTemp)
+    rotateFan();
+
+  delay(500);
 }
 
-void checkForCommands() {
-  if (Serial.available() > 0) {
-    String command = Serial.readStringUntil('\n');
-    
-    if (command.startsWith("CONTROL:")) {
-      // Parse command: "CONTROL:temp_adjust,light_adjust"
-      String values = command.substring(8); // Remove "CONTROL:"
-      
-      // Split by comma
-      int commaIndex = values.indexOf(',');
-      if (commaIndex != -1) {
-        tempAdjustment = values.substring(0, commaIndex).toInt();
-        lightAdjustment = values.substring(commaIndex + 1).toInt();
-        
-        // Acknowledge command
-        Serial.print("ACK:CONTROL:");
-        Serial.print(tempAdjustment);
-        Serial.print(",");
-        Serial.println(lightAdjustment);
-      }
-    }
-  }
+void changeLEDColor(int red, int green, int blue) {
+  analogWrite(PIN_RED,   red);
+  analogWrite(PIN_GREEN, green);
+  analogWrite(PIN_BLUE,  blue);
 }
 
-void applyEnvironmentAdjustments() {
-  // Apply temperature adjustments
-  if (tempAdjustment > 0) {
-    // Heating
-    heatingValue = min(255, heatingValue + 5);
-    coolingValue = max(0, coolingValue - 5);
-  } else if (tempAdjustment < 0) {
-    // Cooling
-    coolingValue = min(255, coolingValue + 5);
-    heatingValue = max(0, heatingValue - 5);
-  } else {
-    // No change, gradually return to neutral
-    heatingValue = max(0, heatingValue - 2);
-    coolingValue = max(0, coolingValue - 2);
-  }
-  
-  // Apply light adjustments
-  if (lightAdjustment > 0) {
-    // Brighten
-    lightValue = min(255, lightValue + 5);
-  } else if (lightAdjustment < 0) {
-    // Dim
-    lightValue = max(0, lightValue - 5);
-  }
-  
-  // Apply values to actuators
-  analogWrite(HEATING_PIN, heatingValue);
-  analogWrite(COOLING_PIN, coolingValue);
-  analogWrite(LIGHT_CONTROL_PIN, lightValue);
+int readRoomBrightness() {
+   return analogRead(lightSensor);
 }
 
-void sendSensorData() {
-  // Read sensor values
-  float temperature = readTemperature();
-  float light = readLightPercentage();
-  int pressure = readPressure();
-  
-  // Send data to serial (Python client)
-  Serial.print("temp:");
+float readRoomTemp() {
+  int sensorValue = analogRead(tempSensor);
+  float voltage = sensorValue * (5.0 / 1024.0); 
+  float temperature = (voltage - 0.5) * 100.0; 
+
+  Serial.print("Temperature: ");
   Serial.print(temperature);
-  Serial.print(",light:");
-  Serial.print(light);
-  Serial.print(",pressure:");
-  Serial.println(pressure);
+  Serial.println(" °C");  // Print temperature value
+
+  return temperature;
 }
 
-float readTemperature() {
-  // Read analog value and convert to Celsius
-  int rawValue = analogRead(TEMP_SENSOR_PIN);
-  float voltage = rawValue * 5.0 / 1023.0;
-  // Using TMP36 sensor (adjust formula for your specific sensor)
-  return (voltage - 0.5) * 100.0;
+void rotateFan() {
+  // Make the servo act like a fan
+  fanServo.write(0);    // Move to position 0 degrees
+  delay(500);           // Wait for 500ms
+  fanServo.write(180);  // Move to 180 degrees
 }
 
-float readLightPercentage() {
-  // Read light sensor and convert to percentage
-  int rawValue = analogRead(LIGHT_SENSOR_PIN);
-  return map(rawValue, 0, 1023, 0, 100);
-}
+bool readBedSensor(){
+  buttonState2 = digitalRead(buttonPin2);
+  if (buttonState2 == HIGH) {
+    return true;
+  }
 
-int readPressure() {
-  // Read pressure sensor (for bed occupancy)
-  int rawValue = analogRead(PRESSURE_SENSOR_PIN);
-  return map(rawValue, 0, 1023, 0, 100);
+  buttonState4 = digitalRead(buttonPin4);
+  if (buttonState4 == HIGH) {
+    return true;
+  }
+
+  return false;
 }
