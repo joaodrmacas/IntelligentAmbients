@@ -69,22 +69,6 @@ def serve_sound(sound_id):
         # Create the sounds directory if it doesn't exist
         if not os.path.exists(sound_dir):
             os.makedirs(sound_dir)
-        
-        try:
-            # Download the sound from YouTube
-            yt = YouTube(f"https://www.youtube.com/watch?v={sound_id}")
-            audio_stream = yt.streams.filter(only_audio=True).first()
-            temp_file = audio_stream.download(output_path=sound_dir, filename=f"{sound_id}")
-            
-            # Convert to MP3 if needed (you might need pydub for this)
-            # For simplicity, we'll just rename the file
-            base, ext = os.path.splitext(temp_file)
-            if ext != '.mp3':
-                os.rename(temp_file, sound_path)
-        except Exception as e:
-            #TODO: code a personalized sound
-            print(f"Error downloading sound: {e}")
-            return "", 404
     
     return send_from_directory(sound_dir, f"{sound_id}.mp3")
 

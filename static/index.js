@@ -29,22 +29,6 @@ document.querySelectorAll('.sound-card').forEach(card => {
     });
 });
 
-// Custom YouTube ID handler
-document.getElementById('set-custom-sound').addEventListener('click', function () {
-    const customId = document.getElementById('custom-youtube-id').value.trim();
-    if (customId) {
-        const customCard = document.querySelector('.sound-card[data-sound-id="custom"]') ||
-            document.querySelector('.sound-card:last-child');
-        customCard.setAttribute('data-sound-id', customId);
-
-        // Remove selected class from all cards
-        document.querySelectorAll('.sound-card').forEach(c => {
-            c.classList.remove('selected');
-        });
-        // Add selected class to custom card
-        customCard.classList.add('selected');
-    }
-});
 
 // Temperature slider value display
 document.getElementById('temp-preference').addEventListener('input', function () {
@@ -234,7 +218,7 @@ function getLightStatusHTML(lightAdjust) {
     if (lightAdjust > 0) {
         return '<i class="fas fa-sun text-warning"></i> <span class="text-warning">Increasing brightness</span>';
     } else if (lightAdjust < 0) {
-        return '<i class="fas fa-moon text-primary"></i> <span class="text-primary">Dimming lights</span>';
+        return '<i class="fas fa-moon text-primary"></i> <span class="text-primary">Decreasing brightness</span>';
     } else {
         return '<i class="fas fa-check-circle text-success"></i> <span class="text-success">Light level maintained</span>';
     }
