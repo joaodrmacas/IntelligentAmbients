@@ -239,13 +239,13 @@ function updateOptimalConditions() {
             
             if (data.overall_optimal) {
                 envElement.innerHTML = '<div class="status-indicator bg-success"></div> Optimal';
-                envElement.className = 'optimal';
+                // envElement.className = 'optimal';
             } else if (!data.temperature_optimal && !data.light_optimal) {
                 envElement.innerHTML = '<div class="status-indicator bg-danger"></div> Poor';
-                envElement.className = 'poor';
+                // envElement.className = 'poor';
             } else {
                 envElement.innerHTML = '<div class="status-indicator bg-warning"></div> Suboptimal';
-                envElement.className = 'suboptimal';
+                // envElement.className = 'suboptimal';
             }
         })
         .catch(error => {
@@ -319,13 +319,13 @@ function updateDashboardStats(data) {
     // Determine overall environment quality based on temperature and light
     if (temp >= 17 && temp <= 24 && light <= 30) {
         envElement.innerHTML = '<div class="status-indicator bg-success"></div> Optimal';
-        envElement.className = 'optimal';
+        // envElement.className = 'optimal';
     } else if ((temp < 17 || temp > 24) && light > 30) {
         envElement.innerHTML = '<div class="status-indicator bg-danger"></div> Poor';
-        envElement.className = 'poor';
+        // envElement.className = 'poor';
     } else {
         envElement.innerHTML = '<div class="status-indicator bg-warning"></div> Suboptimal';
-        envElement.className = 'suboptimal';
+        // envElement.className = 'suboptimal';
     }
 }
 
