@@ -90,7 +90,7 @@ document.getElementById('test-sound').addEventListener('click', function() {
     
     if (soundId) {
         showAlert('Playing sound for ' + duration + ' seconds...', 'info');
-        playSound(soundId);
+        playSound(soundId); // Use the duration from the input field
     } else {
         showAlert('Please select a sound first.', 'warning');
     }
@@ -103,13 +103,9 @@ document.getElementById('test-sound').insertAdjacentHTML('afterend', `
     </button>
 `);
 
-// Add event listener for the stop button
 document.getElementById('stop-sound').addEventListener('click', function() {
-    if (audioPlayer) {
-        audioPlayer.pause();
-        audioPlayer = null;
-        showAlert('Sound stopped.', 'info');
-    }
+    stopSound();
+    showAlert('Sound stopped.', 'info');
 });
 
 document.getElementById('save-env-preferences').addEventListener('click', function () {
@@ -126,6 +122,7 @@ document.getElementById('save-env-preferences').addEventListener('click', functi
 });
 
 let audioPlayer = null;
+let soundTimer = null;
 
 // Check if it's time to play sleep sounds
 function checkAndPlaySleepSounds(data) {
@@ -237,13 +234,13 @@ function updateEnvironmentStatus(temp, light) {
     // Determine overall environment quality based on temperature and light
     if (temp >= 17 && temp <= 24 && light <= 30) {
         envElement.innerHTML = '<div class="status-indicator bg-success"></div> Optimal';
-        envElement.className = 'optimal';
+        // envElement.className = 'optimal';
     } else if ((temp < 17 || temp > 24) && light > 30) {
         envElement.innerHTML = '<div class="status-indicator bg-danger"></div> Poor';
-        envElement.className = 'poor';
+        // envElement.className = 'poor';
     } else {
         envElement.innerHTML = '<div class="status-indicator bg-warning"></div> Suboptimal';
-        envElement.className = 'suboptimal';
+        // envElement.className = 'suboptimal';
     }
 }
 
@@ -465,11 +462,24 @@ function updateSleepHistoryTable(data) {
     });
 }
 
-function playSound(soundId) {
+function stopSound() {
+    // Clear any existing timer
+    if (soundTimer) {
+        clearTimeout(soundTimer);
+        soundTimer = null;
+    }
+    
+    // Stop any playing audio
     if (audioPlayer) {
         audioPlayer.pause();
         audioPlayer = null;
+        console.log('Sound stopped');
     }
+}
+
+function playSound(soundId, customDuration = null) {
+    // Stop any currently playing sound
+    stopSound();
     
     const soundUrl = `/sounds/${soundId}.mp3`;
     
@@ -486,20 +496,21 @@ function playSound(soundId) {
     audioPlayer.play()
         .then(() => {
             console.log('Playing sound:', soundId);
+            
+            // Get duration from parameter or from input field
+            const duration = customDuration !== null ? 
+                customDuration * 1000 : 
+                document.getElementById('sound-duration').value * 1000;
+            
+            // Set a timer to stop the sound after the specified duration
+            soundTimer = setTimeout(() => {
+                stopSound();
+            }, duration);
         })
         .catch(error => {
             console.error('Error playing sound:', error);
             showAlert('Error playing sound: ' + error.message, 'danger');
         });
-    
-    // Stop after the specified duration
-    const duration = document.getElementById('sound-duration').value * 1000;
-    setTimeout(() => {
-        if (audioPlayer) {
-            audioPlayer.pause();
-            audioPlayer = null;
-        }
-    }, duration);
 }
 
 // Add play button to each sound card
@@ -514,31 +525,19 @@ document.querySelectorAll('.sound-card').forEach(card => {
     playButton.addEventListener('click', function(e) {
         e.stopPropagation(); // Prevent card selection
         const soundId = card.getAttribute('data-sound-id');
-        playSound(soundId);
+        playSound(soundId, 5); // Play for 5 seconds as preview
     });
 });
 
-// Update the existing click event for sound cards
 document.querySelectorAll('.sound-card').forEach(card => {
     card.addEventListener('click', function() {
-        // Remove selected class from all cards
         document.querySelectorAll('.sound-card').forEach(c => {
             c.classList.remove('selected');
         });
-        // Add selected class to clicked card
         this.classList.add('selected');
         
-        // Play a short preview of the sound
         const soundId = this.getAttribute('data-sound-id');
-        playSound(soundId);
-        
-        // Stop after 5 seconds (preview)
-        setTimeout(() => {
-            if (audioPlayer) {
-                audioPlayer.pause();
-                audioPlayer = null;
-            }
-        }, 5000);
+        playSound(soundId, 5);
     });
 });
 
