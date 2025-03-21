@@ -23,6 +23,7 @@ int buttonState2 = 0;
 int buttonState4 = 0; 
 
 bool isSleeping = false;
+bool isFanTurnedOn = false;
 
 Servo fanServo;  // Create a Servo object
 int servoPin = 7; // Connect the servo signal wire to pin 9
@@ -50,7 +51,11 @@ void loop() {
   readBedSensor();
   int pressure = isSleeping ? 1:0;
 
-  //Read commands
+  //check and register server changes
+  checkServerChanges();
+
+  //handle changes
+  controlEnvironment(light, temp, pressure);
 
   //Send data to client
   unsigned long currentTime = millis();
@@ -60,13 +65,63 @@ void loop() {
   }
 }
 
+void checkServerChanges() {
+  if (Serial.available() > 0) {
+    String command = Serial.readStringUntil('\n');
+    if (command.startsWith("PREFS:")) {
+      handlePreferences(command);
+    }
+  }
+}
+
+void handlePreferences(String prefsData) {
+  // Format: "PREFS:ideal_temp,max_light,adaptive_light,auto_temp"
+  // Remove "PREFS:" prefix
+  prefsData = prefsData.substring(6);
+  
+  // Parse the values
+  int commaIndex = prefsData.indexOf(',');
+  if (commaIndex > 0) {
+    idealTemp = prefsData.substring(0, commaIndex).toFloat();
+    prefsData = prefsData.substring(commaIndex + 1);
+    
+    commaIndex = prefsData.indexOf(',');
+    if (commaIndex > 0) {
+      maxLight = prefsData.substring(0, commaIndex).toInt();
+      prefsData = prefsData.substring(commaIndex + 1);
+      
+      commaIndex = prefsData.indexOf(',');
+      if (commaIndex > 0) {
+        adaptiveLight = prefsData.substring(0, commaIndex).toInt() == 1;
+        prefsData = prefsData.substring(commaIndex + 1);
+        
+        autoTemp = prefsData.toInt() == 1;
+        
+        // Send acknowledgment
+        Serial.println("PREFS_ACK");
+        Serial.print("LOG:Preferences updated - idealTemp:");
+        Serial.print(idealTemp);
+        Serial.print(", maxLight:");
+        Serial.print(maxLight);
+        Serial.print(", adaptiveLight:");
+        Serial.print(adaptiveLight ? "ON" : "OFF");
+        Serial.print(", autoTemp:");
+        Serial.println(autoTemp ? "ON" : "OFF");
+      }
+    }
+  }
+}
+
 void controlEnvironment(int pressure, float currentTemp, int currentLight) {
   // Temperature control
   if (autoTemp) {
     float tempDiff = idealTemp - currentTemp;
+    isFanTurnedOn = false;
     if (tempDiff > 1) {
       // Heat up - trigger heating logic
     } else if (tempDiff < -1) {
+      TODO: remove comment
+      // isFanTurnedOn = true;
       rotateFan();
     }
   }
@@ -74,9 +129,9 @@ void controlEnvironment(int pressure, float currentTemp, int currentLight) {
   // Light control
   if (adaptiveLight) {
     if (currentLight > maxLight) {
-      // Dim lights - trigger dimming logic
-    } else if (currentLight < 5) {
-      // Brighten lights - trigger brightening logic
+      changeLEDColor(0,0,255);
+    } else if (currentLight < maxLight) {
+      changeLEDColor(255,0,0);
     }
   }
 }
@@ -111,10 +166,11 @@ float readRoomTemp() {
 }
 
 void rotateFan() {
-  // Make the servo act like a fan
-  fanServo.write(0);    // Move to position 0 degrees
-  delay(500);           // Wait for 500ms
-  fanServo.write(180);  // Move to 180 degrees
+  if (!isFanTurnedOn) return;
+  static int angle = 0;
+  angle = (angle == 0) ? 180 : 0; 
+  fanServo.write(angle);
+  delay(500); 
 }
 
 void readBedSensor() {
