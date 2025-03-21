@@ -113,8 +113,9 @@ function updateEnvironmentControls(temp, light) {
     fetchFromAPI('/api/environment-control')
         .then(controlData => {
             createStatusElementsIfNeeded();
-            updateTemperatureControlStatus(controlData);
-            updateLightControlStatus(controlData);
+            //TODO: uncomment to get the widgets if it is warming up or not
+            // updateTemperatureControlStatus(controlData);
+            // updateLightControlStatus(controlData);
         })
         .catch(error => {
             console.error('Error fetching environment control data:', error);

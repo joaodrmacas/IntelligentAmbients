@@ -37,7 +37,7 @@ def init_db():
         cursor.execute('''CREATE TABLE IF NOT EXISTS user_preferences (
                             id INTEGER PRIMARY KEY AUTOINCREMENT,
                             ideal_temp REAL DEFAULT 18.5,
-                            max_light INTEGER DEFAULT 10,
+                            max_light INTEGER DEFAULT 30,
                             adaptive_light BOOLEAN DEFAULT 1,
                             auto_temp BOOLEAN DEFAULT 1,
                             sleep_notifications BOOLEAN DEFAULT 1,
@@ -105,7 +105,7 @@ def update_sleep_sessions(conn, data):
             start_time = datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S")
             
             # Each second is a minute
-            duration = ((end_time - start_time).total_seconds())*25
+            duration = ((end_time - start_time).total_seconds())*5
             
             # Calculate averages for this session
             cursor.execute("""
@@ -182,6 +182,8 @@ def receive_sensor_data():
     data = request.get_json()
     if not data:
         return jsonify({"error": "Invalid data"}), 400
+    
+    print(f"Received sensor data: {data}")
     
     insert_sensor_data(data)
     return jsonify({"message": "Data received successfully"}), 200
@@ -402,61 +404,81 @@ def get_optimal_conditions():
         
         return jsonify({"message": "Insufficient data to determine optimal conditions"})
 
-def get_environment_adjustments():
-    """Determines what environmental adjustments are needed based on preferences."""
+# def get_environment_adjustments():
+#     """Determines what environmental adjustments are needed based on preferences."""
+#     with sqlite3.connect("smart_bedroom.db") as conn:
+#         cursor = conn.cursor()
+        
+#         # Get latest sensor data
+#         cursor.execute("SELECT temperature, light FROM sensor_data ORDER BY id DESC LIMIT 1")
+#         sensor_row = cursor.fetchone()
+        
+#         # Get user preferences
+#         cursor.execute("SELECT ideal_temp, max_light, adaptive_light, auto_temp FROM user_preferences ORDER BY id DESC LIMIT 1")
+#         pref_row = cursor.fetchone()
+        
+#         if not sensor_row or not pref_row:
+#             return {"temp_adjust": 0, "light_adjust": 0, "auto_temp": False, "adaptive_light": False}
+        
+#         current_temp = sensor_row[0]
+#         current_light = sensor_row[1]
+#         ideal_temp = pref_row[0]
+#         max_light = pref_row[1]
+#         adaptive_light = bool(pref_row[2])
+#         auto_temp = bool(pref_row[3])
+        
+#         # Initialize adjustments
+#         temp_adjust = 0
+#         light_adjust = 0
+        
+#         if auto_temp:
+#             temp_diff = ideal_temp - current_temp
+            
+#             # Determine adjustment (-1 for cooling, +1 for heating, 0 for no change)
+#             if temp_diff > 1:  # Need to heat up
+#                 temp_adjust = 1
+#             elif temp_diff < -1:  # Need to cool down
+#                 temp_adjust = -1
+        
+#         if adaptive_light:
+#             # If current light is higher than max_light, dim the lights
+#             if current_light > max_light:
+#                 light_adjust = -1  # Dim lights
+#             # If it's too dark (below 5%), brighten slightly
+#             elif current_light < 5:
+#                 light_adjust = 1  # Brighten lights
+        
+#         return {
+#             "temp_adjust": temp_adjust, 
+#             "light_adjust": light_adjust,
+#             "auto_temp": auto_temp,
+#             "adaptive_light": adaptive_light
+#         }
+
+@app.route("/api/environment-control", methods=["GET"])
+def environment_control():
     with sqlite3.connect("smart_bedroom.db") as conn:
         cursor = conn.cursor()
-        
-        # Get latest sensor data
-        cursor.execute("SELECT temperature, light FROM sensor_data ORDER BY id DESC LIMIT 1")
-        sensor_row = cursor.fetchone()
         
         # Get user preferences
         cursor.execute("SELECT ideal_temp, max_light, adaptive_light, auto_temp FROM user_preferences ORDER BY id DESC LIMIT 1")
         pref_row = cursor.fetchone()
         
-        if not sensor_row or not pref_row:
-            return {"temp_adjust": 0, "light_adjust": 0, "auto_temp": False, "adaptive_light": False}
+        if pref_row:
+            return jsonify({
+                    "ideal_temp": pref_row[0],
+                    "max_light": pref_row[1],
+                    "adaptive_light": bool(pref_row[2]),
+                    "auto_temp": bool(pref_row[3])
+            })
         
-        current_temp = sensor_row[0]
-        current_light = sensor_row[1]
-        ideal_temp = pref_row[0]
-        max_light = pref_row[1]
-        adaptive_light = bool(pref_row[2])
-        auto_temp = bool(pref_row[3])
-        
-        # Initialize adjustments
-        temp_adjust = 0
-        light_adjust = 0
-        
-        if auto_temp:
-            temp_diff = ideal_temp - current_temp
-            
-            # Determine adjustment (-1 for cooling, +1 for heating, 0 for no change)
-            if temp_diff > 1:  # Need to heat up
-                temp_adjust = 1
-            elif temp_diff < -1:  # Need to cool down
-                temp_adjust = -1
-        
-        if adaptive_light:
-            # If current light is higher than max_light, dim the lights
-            if current_light > max_light:
-                light_adjust = -1  # Dim lights
-            # If it's too dark (below 5%), brighten slightly
-            elif current_light < 5:
-                light_adjust = 1  # Brighten lights
-        
-        return {
-            "temp_adjust": temp_adjust, 
-            "light_adjust": light_adjust,
-            "auto_temp": auto_temp,
-            "adaptive_light": adaptive_light
-        }
-
-@app.route("/api/environment-control", methods=["GET"])
-def environment_control():
-    adjustments = get_environment_adjustments()
-    return jsonify(adjustments)
+        # Default values
+        return jsonify({
+            "ideal_temp": 18.5,
+            "max_light": 20,
+            "adaptive_light": True,
+            "auto_temp": True
+        })
 
 
 if __name__ == "__main__":
