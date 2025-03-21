@@ -96,17 +96,7 @@ void handlePreferences(String prefsData) {
         prefsData = prefsData.substring(commaIndex + 1);
         
         autoTemp = prefsData.toInt() == 1;
-        
-        // Send acknowledgment
-        Serial.println("PREFS_ACK");
-        Serial.print("LOG:Preferences updated - idealTemp:");
-        Serial.print(idealTemp);
-        Serial.print(", maxLight:");
-        Serial.print(maxLight);
-        Serial.print(", adaptiveLight:");
-        Serial.print(adaptiveLight ? "ON" : "OFF");
-        Serial.print(", autoTemp:");
-        Serial.println(autoTemp ? "ON" : "OFF");
+        if (!auto_temp) isFanTurnedOn = false;
       }
     }
   }
