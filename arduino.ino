@@ -10,6 +10,9 @@ const int buttonPin4 = 4;
 const int minLightLevel = 200;
 const float minRoomTemp = 24;
 
+const unsigned long SEND_INTERVAL = 5000;  // Send data every 5 seconds
+unsigned long lastSendTime = 0;
+
 int buttonState2 = 0; 
 int buttonState4 = 0; 
 
@@ -17,32 +20,44 @@ Servo fanServo;  // Create a Servo object
 int servoPin = 7; // Connect the servo signal wire to pin 9
 
 void setup() {
+  Serial.begin(9600);
+
   // put your setup code here, to run once:
   pinMode(PIN_RED,   OUTPUT);
   pinMode(PIN_GREEN, OUTPUT);
   pinMode(PIN_BLUE,  OUTPUT);
-  Serial.begin(9600);
   pinMode(lightSensor, INPUT);
   pinMode(buttonPin2, INPUT);
   pinMode(buttonPin4, INPUT);
+
+  delay(2000);  // Give time to initialize
 
   fanServo.attach(servoPin); // Attach the servo
 }
 
 void loop() {
-  float isInBed = readBedSensor();
-
-  if (readRoomBrightness() > minLightLevel){
-    changeLEDColor(0,0,255);
-  }else if (isInBed){
-    changeLEDColor(255,0,0);
+  unsigned long currentTime = millis();
+  if (currentTime - lastSendTime >= SEND_INTERVAL) {
+    sendSensorData();
+    lastSendTime = currentTime;
   }
-
-  if (readRoomTemp() > minRoomTemp)
-    rotateFan();
-
-  delay(500);
 }
+
+void sendSensorData(){
+  float light = readLightPercentage();
+  float temp = readRoomTemp();
+  float pressure = 0;
+  int pressure = readBedSensor() ? 1 : 0;
+
+  //Send data to serial
+  Serial.print("temp:");
+  Serial.print(temperature);
+  Serial.print(",light:");
+  Serial.print(light);
+  Serial.print(",pressure:");
+  Serial.println(pressure);
+}
+
 
 void changeLEDColor(int red, int green, int blue) {
   analogWrite(PIN_RED,   red);
@@ -50,19 +65,15 @@ void changeLEDColor(int red, int green, int blue) {
   analogWrite(PIN_BLUE,  blue);
 }
 
-int readRoomBrightness() {
-   return analogRead(lightSensor);
+float readRoomBrightness() {
+   int rawValue = analogRead(LIGHT_SENSOR_PIN);
+   return map(rawValue, 0, 1023, 0, 100);
 }
 
 float readRoomTemp() {
   int sensorValue = analogRead(tempSensor);
-  float voltage = sensorValue * (5.0 / 1024.0); 
+  float voltage = sensorValue * (5.0 / 1023.0); 
   float temperature = (voltage - 0.5) * 100.0; 
-
-  Serial.print("Temperature: ");
-  Serial.print(temperature);
-  Serial.println(" °C");  // Print temperature value
-
   return temperature;
 }
 

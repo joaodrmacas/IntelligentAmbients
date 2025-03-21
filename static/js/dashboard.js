@@ -46,18 +46,18 @@ function checkAndPlaySleepSounds(data) {
 // Update dashboard statistics with current data
 function updateDashboardStats(data) {
     // For demo purposes, using mock data if API data isn't available
-    const mockData = {
+    const dataToDisplay = {
         temperature: data.temperature || 20.5,
         light: data.light || 45,
         pressure: data.pressure || 0,
         timestamp: data.timestamp || new Date().toISOString()
     };
 
-    updateTemperatureDisplay(mockData.temperature);
-    updateLightDisplay(mockData.light);
-    updateSleepStatus(mockData.pressure);
-    updateEnvironmentStatus(mockData.temperature, mockData.light);
-    updateEnvironmentControls(mockData.temperature, mockData.light);
+    updateTemperatureDisplay(dataToDisplay.temperature);
+    updateLightDisplay(dataToDisplay.light);
+    updateSleepStatus(dataToDisplay.pressure);
+    updateEnvironmentStatus(dataToDisplay.temperature, dataToDisplay.light);
+    updateEnvironmentControls(dataToDisplay.temperature, dataToDisplay.light);
 }
 
 function updateTemperatureDisplay(temp) {
@@ -89,7 +89,7 @@ function updateLightDisplay(light) {
 function updateSleepStatus(pressure) {
     const sleepElement = document.getElementById('sleep-status');
 
-    if (pressure > 10) {
+    if (pressure > 0) {
         sleepElement.innerHTML = 'In Bed <span class="badge badge-sleep">Sleeping</span>';
     } else {
         sleepElement.innerHTML = 'Not in Bed <span class="badge bg-secondary">Awake</span>';
@@ -273,11 +273,15 @@ function updateSleepHistoryTable(data) {
                 qualityBadge = '<span class="badge bg-secondary">Unknown</span>';
         }
 
+        let hours = record.hours ? record.hours.toFixed(1) : 'N/A';
+        let temp = record.temp ? record.temp.toFixed(1) : 'N/A';
+        let light = record.light ? record.light.toFixed(1) : 'N/A';
+
         row.innerHTML = `
             <td>${formattedDate}</td>
-            <td>${record.hours.toFixed(1)}</td>
-            <td>${record.temp.toFixed(1)}°C</td>
-            <td>${record.light}%</td>
+            <td>${hours}</td>
+            <td>${temp}°C</td>
+            <td>${light}%</td>
             <td>${qualityBadge}</td>
         `;
 

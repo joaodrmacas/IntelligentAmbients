@@ -2,7 +2,14 @@ import sqlite3
 import random
 from datetime import datetime, timedelta
 
+# Add this function to handle datetime adaptation for SQLite
+def adapt_datetime(dt):
+    return dt.strftime("%Y-%m-%d %H:%M:%S")
+
 def populate_sleep_sessions():
+    # Register the datetime adapter
+    sqlite3.register_adapter(datetime, adapt_datetime)
+    
     conn = sqlite3.connect("../smart_bedroom.db")
     cursor = conn.cursor()
     
@@ -145,6 +152,9 @@ def populate_sensor_data(conn, now):
     conn.commit()
 
 def drop_database():
+    # Register the datetime adapter
+    sqlite3.register_adapter(datetime, adapt_datetime)
+    
     conn = sqlite3.connect("../smart_bedroom.db")
     cursor = conn.cursor()
     cursor.execute("DROP TABLE IF EXISTS sleep_sessions")

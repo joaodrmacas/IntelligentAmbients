@@ -2,9 +2,9 @@ import serial
 import requests
 import time
 
-SERIAL_PORT = "COM3" 
+SERIAL_PORT = "/dev/ttyACM0" 
 BAUD_RATE = 9600
-FLASK_API_URL = "http://127.0.0.1:5000/sensor-data"
+FLASK_API_URL = "http://127.0.0.1:5000/api/sensor-data"
 CONTROL_API_URL = "http://127.0.0.1:5000/api/environment-control"
 
 def parse_data(data):
@@ -23,8 +23,10 @@ def send_to_flask(data):
     try:
         response = requests.post(FLASK_API_URL, json=data)
         print(f"Sent data: {data}, Response: {response.status_code}")
+        return True
     except requests.exceptions.RequestException as e:
         print(f"Error sending data to Flask: {e}")
+        return False
 
 def get_control_commands():
     try:
@@ -50,6 +52,8 @@ def send_commands_to_arduino(ser, commands):
 
         command_str = f"CONTROL:{commands['temp_adjust']},{commands['light_adjust']}\n"
         
+        print(f"Sending to Arduino: {command_str.strip()}")
+
         try:
             ser.write(command_str.encode())
             print(f"Sent to Arduino: {command_str.strip()}")

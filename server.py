@@ -2,12 +2,16 @@ from flask import Flask, request, jsonify, render_template, send_from_directory
 import sqlite3
 from datetime import datetime, timedelta
 import os
-from pytube import YouTube
 
 app = Flask(__name__, static_folder='static')
 
+def adapt_datetime(dt):
+    return dt.strftime("%Y-%m-%d %H:%M:%S")
+
 # Database setup
 def init_db():
+
+    sqlite3.register_adapter(datetime, adapt_datetime)
     with sqlite3.connect("smart_bedroom.db") as conn:
         cursor = conn.cursor()
         
@@ -50,14 +54,19 @@ def init_db():
 init_db()
 
 def insert_sensor_data(data):
+    # Register the datetime adapter for this connection
+    sqlite3.register_adapter(datetime, adapt_datetime)
+    
     with sqlite3.connect("smart_bedroom.db") as conn:
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO sensor_data (temperature, light, pressure) VALUES (?, ?, ?)",
-                       (data.get("temp"), data.get("light"), data.get("pressure")))
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        cursor.execute("INSERT INTO sensor_data (temperature, light, pressure, timestamp) VALUES (?, ?, ?, ?)",
+                       (data.get("temp"), data.get("light"), data.get("pressure"), current_time))
         conn.commit()
         
         # Check if we need to update sleep sessions
         update_sleep_sessions(conn, data)
+
 
 @app.route("/sounds/<sound_id>.mp3")
 def serve_sound(sound_id):
@@ -81,26 +90,28 @@ def update_sleep_sessions(conn, data):
     active_session = cursor.fetchone()
     
     # User is in bed
-    if pressure >= 1:
+    if pressure > 0:
         if not active_session:
+            print('Comecou uma sessao')
             cursor.execute("INSERT INTO sleep_sessions (start_time) VALUES (?)", 
                           (datetime.now().strftime("%Y-%m-%d %H:%M:%S"),))
             conn.commit()
     else:  # User is not in bed
         if active_session:
+            print('acabou uma sessao')
             # End the active sleep session
             session_id, start_time = active_session
             end_time = datetime.now()
             start_time = datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S")
             
-            # Calculate duration in minutes
-            duration = (end_time - start_time).total_seconds() / 60
+            # Each second is a minute
+            duration = ((end_time - start_time).total_seconds())*25
             
             # Calculate averages for this session
             cursor.execute("""
                 SELECT AVG(temperature), AVG(light) FROM sensor_data 
                 WHERE timestamp BETWEEN ? AND ?
-            """, (start_time, end_time))
+            """, (start_time.strftime("%Y-%m-%d %H:%M:%S"), end_time.strftime("%Y-%m-%d %H:%M:%S")))
             
             avg_temp, avg_light = cursor.fetchone()
             
@@ -173,7 +184,6 @@ def receive_sensor_data():
         return jsonify({"error": "Invalid data"}), 400
     
     insert_sensor_data(data)
-    print(f"Received sensor data: {data}")
     return jsonify({"message": "Data received successfully"}), 200
 
 @app.route("/api/current-data", methods=["GET"])
