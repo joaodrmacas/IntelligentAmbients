@@ -22,7 +22,7 @@ unsigned long lastSendTime = 0;
 int buttonState2 = 0; 
 int buttonState4 = 0; 
 
-bool isSleeping = false;
+bool isSleeping = true;
 bool isFanTurnedOn = false;
 
 Servo fanServo;  // Create a Servo object
@@ -96,7 +96,7 @@ void handlePreferences(String prefsData) {
         prefsData = prefsData.substring(commaIndex + 1);
         
         autoTemp = prefsData.toInt() == 1;
-        if (!auto_temp) isFanTurnedOn = false;
+        if (!autoTemp) isFanTurnedOn = false;
       }
     }
   }
@@ -110,8 +110,8 @@ void controlEnvironment(int pressure, float currentTemp, int currentLight) {
     if (tempDiff > 1) {
       // Heat up - trigger heating logic
     } else if (tempDiff < -1) {
-      TODO: remove comment
-      // isFanTurnedOn = true;
+      //TODO: remove comment
+      isFanTurnedOn = true;
       rotateFan();
     }
   }
@@ -150,7 +150,7 @@ float readRoomBrightness() {
 
 float readRoomTemp() {
   int sensorValue = analogRead(tempSensor);
-  float voltage = sensorValue * (5.0 / 1023.0); 
+  float voltage = sensorValue * (3.3 / 1023.0); 
   float temperature = (voltage - 0.5) * 100.0; 
   return temperature;
 }
