@@ -6,16 +6,78 @@ export function initDashboard() {
     fetchCurrentData();
     initSleepChart();
     populateSleepHistoryTable();
+
+    addSleepModeButton();
     
     // Update every 5 seconds
     setInterval(fetchCurrentData, 5000);
+}
+
+function addSleepModeButton() {
+    // Find where to add the button
+    const statusCard = document.querySelector('.card');
+    
+    // Create the button
+    const sleepModeBtn = document.createElement('button');
+    sleepModeBtn.id = 'sleep-mode-btn';
+    sleepModeBtn.className = 'btn btn-primary mt-3';
+    sleepModeBtn.innerHTML = '<i class="fas fa-bed"></i> Arm Sleep Mode';
+    
+    // Add to page
+    statusCard.appendChild(sleepModeBtn);
+    
+    // Add event listener
+    sleepModeBtn.addEventListener('click', function() {
+        // Toggle sleep mode
+        window.sleepModeEnabled = !window.sleepModeEnabled;
+        
+        // Update button text
+        if (window.sleepModeEnabled) {
+            sleepModeBtn.innerHTML = '<i class="fas fa-bed"></i> Sleep Mode Active';
+            sleepModeBtn.className = 'btn btn-success mt-3';
+            
+            // Play a short sound to enable future auto-play
+            const audio = new Audio();
+            audio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+            audio.play().then(() => {
+                showAlert('Sleep mode activated! System will play sounds when you go to bed.', 'info');
+            }).catch(e => console.error('Error playing activation sound:', e));
+        } else {
+            sleepModeBtn.innerHTML = '<i class="fas fa-bed"></i> Arm Sleep Mode';
+            sleepModeBtn.className = 'btn btn-primary mt-3';
+            showAlert('Sleep mode deactivated.', 'info');
+            
+            // Stop any playing sounds
+            stopSoundImport();
+        }
+    });
+}
+
+function stopSoundImport() {
+    import('./audio-player.js').then(module => {
+        module.stopSound();
+    });
 }
 
 function fetchCurrentData() {
     fetchFromAPI('/api/current-data')
         .then(data => {
             updateDashboardStats(data);
-            checkAndPlaySleepSounds(data);
+
+            if (window.sleepModeEnabled) {
+                // Check if a sleep session has started
+                if (data.sleeping && !window.previousSleepingState) {
+                    console.log('Sleep session detected - playing sleep sound');
+                    playSleepSound();
+                }
+                // Check if a sleep session has ended
+                else if (!data.sleeping && window.previousSleepingState) {
+                    console.log('Sleep session ended - stopping sound');
+                    stopSoundImport();
+                }
+            }
+
+            window.previousSleepingState = data.sleeping;
         })
         .catch(error => {
             console.error('Error fetching sensor data:', error);
@@ -23,23 +85,18 @@ function fetchCurrentData() {
 }
 
 // Check if it's time to play sleep sounds
-function checkAndPlaySleepSounds(data) {
-    // Only proceed if sleep notifications are enabled
+function playSleepSound() {
+    // Get the user's preferred sound settings
     fetchFromAPI('/api/preferences')
         .then(preferences => {
             if (preferences.sleep_notifications) {
-                fetchFromAPI('/api/optimal-conditions')
-                    .then(conditions => {
-                        // Play sound if conditions are optimal and user is in bed
-                        if (conditions.overall_optimal && data.pressure >= 1) {
-                            if (!window.audioPlayer) {
-                                console.log('Playing sleep sound:', preferences.sound_id);
-                                playSound(preferences.sound_id, preferences.sound_duration);
-                                showAlert('Sleep conditions are optimal. Playing sleep sound.', 'info');
-                            }
-                        }
-                    });
+                console.log('Playing sound on sleep session start:', preferences.sound_id);
+                playSound(preferences.sound_id, preferences.sound_duration);
+                showAlert('Sleep session started. Playing sleep sound.', 'info');
             }
+        })
+        .catch(error => {
+            console.error('Error fetching preferences:', error);
         });
 }
 

@@ -65,7 +65,8 @@ def insert_sensor_data(data):
         conn.commit()
         
         # Check if we need to update sleep sessions
-        update_sleep_sessions(conn, data)
+        return update_sleep_sessions(conn, data)
+    return False
 
 
 @app.route("/sounds/<sound_id>.mp3")
@@ -88,6 +89,8 @@ def update_sleep_sessions(conn, data):
     # Get the last sleep session that doesn't have an end time
     cursor.execute("SELECT id, start_time FROM sleep_sessions WHERE end_time IS NULL")
     active_session = cursor.fetchone()
+
+    result = {"session_started": False, "session_ended": False}
     
     # User is in bed
     if pressure > 0:
@@ -96,6 +99,7 @@ def update_sleep_sessions(conn, data):
             cursor.execute("INSERT INTO sleep_sessions (start_time) VALUES (?)", 
                           (datetime.now().strftime("%Y-%m-%d %H:%M:%S"),))
             conn.commit()
+            result["session_started"] = True
     else:  # User is not in bed
         if active_session:
             print('acabou uma sessao')
@@ -129,8 +133,11 @@ def update_sleep_sessions(conn, data):
             """, (end_time.strftime("%Y-%m-%d %H:%M:%S"), round(duration), avg_temp, avg_light, quality, session_id))
             
             conn.commit()
+            result["session_ended"] = True
+    return result
 
 def determine_sleep_quality(avg_temp, avg_light, duration):
+
     quality_score = 0
     
     # Temperature factor (18-22°C is ideal)
@@ -185,8 +192,12 @@ def receive_sensor_data():
     
     print(f"Received sensor data: {data}")
     
-    insert_sensor_data(data)
-    return jsonify({"message": "Data received successfully"}), 200
+    session_status = insert_sensor_data(data)
+    return jsonify({
+        "message": "Data received successfully",
+        "session_started": session_status["session_started"],
+        "session_ended": session_status["session_ended"]
+    }), 200
 
 @app.route("/api/current-data", methods=["GET"])
 def get_current_data():
