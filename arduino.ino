@@ -73,6 +73,7 @@ void loop() {
   } else {
     // Reset sleep timer when not sleeping
     sleepTimerActive = false;
+    fanServo.write(0);
   }
 
   controlTemp(temp, isSleeping);
