@@ -1,8 +1,8 @@
 #include <Servo.h>
 
-const int PIN_RED   = 11;
 const int PIN_GREEN = 9;
-const int PIN_BLUE  = 6;
+const int PIN_RED   = 11;
+const int PIN_BLUE  = 13;
 const int lightSensor = A0;
 const int tempSensor =  A1;
 const int buttonPin2 = 2;
@@ -15,8 +15,11 @@ float idealTemp = 18.5;
 bool autoTemp = true;
 bool adaptiveLight = true;
 
+unsigned long sleepStartTime = 0;
+const unsigned long SLEEP_DURATION = 15000;  // 8 hours in milliseconds (8 * 60 * 60 * 1000)
+bool sleepTimerActive = false;
 
-const unsigned long SEND_INTERVAL = 5000;  // Send data every 5 seconds
+const unsigned long SEND_INTERVAL = 2000;  // Send data every 5 seconds
 unsigned long lastSendTime = 0;
 
 int buttonState2 = 0; 
@@ -55,7 +58,25 @@ void loop() {
   checkServerChanges();
 
   //handle changes
-  controlEnvironment(light, temp, pressure);
+  if (isSleeping){
+    if (!sleepTimerActive) {
+      sleepStartTime = millis();
+      sleepTimerActive = true;
+    }
+
+    //Check if sleep duration has passed
+    if (millis() - sleepStartTime >= SLEEP_DURATION) {
+      isSleeping = false;
+      sleepTimerActive = false;
+    }
+
+  } else {
+    // Reset sleep timer when not sleeping
+    sleepTimerActive = false;
+  }
+
+  controlTemp(temp, isSleeping);
+  controlLight(light);
 
   //Send data to client
   unsigned long currentTime = millis();
@@ -102,20 +123,23 @@ void handlePreferences(String prefsData) {
   }
 }
 
-void controlEnvironment(int pressure, float currentTemp, int currentLight) {
+void controlTemp(float currentTemp, bool isSleeping) {
   // Temperature control
+  if (!isSleeping) return;
   if (autoTemp) {
     float tempDiff = idealTemp - currentTemp;
     isFanTurnedOn = false;
     if (tempDiff > 1) {
       // Heat up - trigger heating logic
     } else if (tempDiff < -1) {
-      //TODO: remove comment
       isFanTurnedOn = true;
       rotateFan();
     }
   }
   
+}
+
+void controlLight(int currentLight) {
   // Light control
   if (adaptiveLight) {
     if (currentLight > maxLight) {
@@ -150,7 +174,7 @@ float readRoomBrightness() {
 
 float readRoomTemp() {
   int sensorValue = analogRead(tempSensor);
-  float voltage = sensorValue * (3.3 / 1023.0); 
+  float voltage = sensorValue * (5.0 / 1023.0); 
   float temperature = (voltage - 0.5) * 100.0; 
   return temperature;
 }

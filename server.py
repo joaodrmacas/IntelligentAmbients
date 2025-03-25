@@ -37,7 +37,7 @@ def init_db():
         cursor.execute('''CREATE TABLE IF NOT EXISTS user_preferences (
                             id INTEGER PRIMARY KEY AUTOINCREMENT,
                             ideal_temp REAL DEFAULT 18.5,
-                            max_light INTEGER DEFAULT 30,
+                            max_light INTEGER DEFAULT 50,
                             adaptive_light BOOLEAN DEFAULT 1,
                             auto_temp BOOLEAN DEFAULT 1,
                             sleep_notifications BOOLEAN DEFAULT 1,
