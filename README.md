@@ -1,5 +1,5 @@
 # Smart Bedroom:
-*Enhancing Sleep Hygiene with Ambient Intelligence*
+*Enhancing Sleep Hygiene with the help of Ambient Intelligence*
 
 ## Description
 The proposed solution addresses one of the main roots of poor sleep: *inadequate sleep hygiene* –
@@ -10,8 +10,6 @@ unified system aimed to enhance user’s sleep hygiene. Doing it so by monitorin
 user’s environment in regards to light exposure and room temperature, raising awareness about
 behavioral issues: time in bed, inconsistent sleep routines while also promoting better sleep
 habits like wind-down routines and sleep onset techniques
-
-This project was developed as part of the *Ambient Intelligence 2025* course at IST.
 
 ## Requirements
 - Python 3.8+
@@ -46,18 +44,22 @@ python3 populate_sleep.py
    python3 server.py
    ```
 #### 6. Start the Client:
+Before running, ensure the `SERIAL_PORT` in `client.py` is set to match your system's Arduino port
    ```sh
    python3 client.py
    ```
 
 
-
 ## Notes
-- The serial port value (`SERIAL_PORT`) may need to be adjusted in `client.py` depending on the port where the Arduino is connected (usually `PORT 9600`)
+The SERIAL_PORT value in client.py must be set to the correct port for your system:
+- On Linux/macOS, it may be `/dev/ttyACM0` or `/dev/ttyUSB0`.
+- On Windows, it will be something like `COM3`, `COM4`.
 - If dependency errors occur, ensure all project libraries are correctly installed.
 
 ## Authors
-- João Maçãs
+- João Maçãs `joaomacas02@tecnico.ulisboa.pt`
 - Pedro Cruz `pedro.agostinho.cruz@tecnico.ulisboa.pt`  
-- João Pamplona
+- João Pamplona `joao.pamplona.vieira@tecnico.ulisboa.pt`
+ 
+This project was developed as part of the *Ambient Intelligence 2025* course at IST.
 
