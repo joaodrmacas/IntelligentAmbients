@@ -28,22 +28,24 @@ habits like wind-down routines and sleep onset techniques
    ```
 
 #### 2. Populate the Database
-Before starting the server, for a  more realistic simulation the database must be populated with sleep data over several days
+Before starting the server, for a  more realistic simulation the database must be populated with sleep data over several days (we are using relative path's so you need to be inside scripts folder when you run populate_sleep script)
 ```sh
 cd ./scripts  
 python3 populate_sleep.py
 ```
-#### 4. Connect the Arduino
+
+#### 3. Connect the Arduino
 - Connect the Arduino to the computer via the given USB cabble .
 - Open the `arduino.ino` file in the Arduino IDE.
 - Select the correct board and port.
 - Upload the code to the Arduino.
 
-#### 5. Start the Server:
+#### 4. Start the Server:
    ```sh
+   cd ..
    python3 server.py
    ```
-#### 6. Start the Client:
+#### 5. Start the Client:
 Before running, ensure the `SERIAL_PORT` in `client.py` is set to match your system's Arduino port
    ```sh
    python3 client.py
